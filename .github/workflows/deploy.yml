@@ -5,33 +5,41 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+
+  build-node:
+    name: Build Node Image
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Build Node Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/node-app ./node-app
+      - name: Build Node Docker Image
+        run: docker build -t node-app ./node-app
 
-      - name: Build Python Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/python-app ./python-app
 
-      - name: Login DockerHub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+  build-python:
+    name: Build Python Image
+    runs-on: ubuntu-latest
 
-      - name: Tag Images
-        run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/node-app ${{ secrets.DOCKER_USERNAME }}/node-app:${{ github.sha }}
-          docker tag ${{ secrets.DOCKER_USERNAME }}/python-app ${{ secrets.DOCKER_USERNAME }}/python-app:${{ github.sha }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Push Images
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/node-app:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/python-app:${{ github.sha }}
+      - name: Build Python Docker Image
+        run: docker build -t python-app ./python-app
 
-      - name: Deploy to EC2 Swarm
+
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    needs:
+      - build-node
+      - build-python
+
+    steps:
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
