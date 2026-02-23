@@ -48,7 +48,10 @@ Infrastructure setup:   Ubuntu EC2 instance (Swarm manager & Swarm worker)
                         Docker installed
 
                         Security group allowing: Port( 80 (Application) , 3001 (Grafana) , 9090 (Prometheus) )
-          ![Alt text for the image](https://github.com/PratikshaWankhede/devops-assignment-/blob/main/Screenshot-1.png)
+          
+          
+          
+          !(https://github.com/PratikshaWankhede/devops-assignment-/blob/main/Screenshot-1.png)
 
 The entire system runs inside this EC2 instance.
 
