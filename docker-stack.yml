@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   client-a:
-    image: node-app:latest
+    image: pratikshawankhede/node-app:latest
     networks:
       - app-network
     deploy:
@@ -15,7 +15,7 @@ services:
         delay: 10s
 
   client-b:
-    image: python-app:latest
+    image: pratikshawankhede/python-app:latest
     networks:
       - app-network
     deploy:

@@ -1,0 +1,41 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build Node Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/node-app ./node-app
+
+      - name: Build Python Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/python-app ./python-app
+
+      - name: Login DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Tag Images
+        run: |
+          docker tag ${{ secrets.DOCKER_USERNAME }}/node-app ${{ secrets.DOCKER_USERNAME }}/node-app:${{ github.sha }}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/python-app ${{ secrets.DOCKER_USERNAME }}/python-app:${{ github.sha }}
+
+      - name: Push Images
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/node-app:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/python-app:${{ github.sha }}
+
+      - name: Deploy to EC2 Swarm
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stack deploy -c ~/devops-assignment/docker-stack.yml multi-client
